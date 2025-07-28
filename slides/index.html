@@ -1,0 +1,936 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Reinforcement Learning for Robotics</title>
+
+		<link rel="stylesheet" href="./reveal.js/dist/reveal.css">
+		<link rel="stylesheet" href="./reveal.js/plugin/highlight/monokai.css" />
+		<link rel="stylesheet" href="./reveal.js/dist/theme/black.css" id="theme">
+
+		<style>
+			.reveal {
+				font-size: 24px;
+				--highlight-color: rgb(0, 247, 255);
+				--green-color: #17ff2e;
+			}
+			.reveal figure {
+				margin: 0 0 1rem 0;
+				text-align: center;
+			}
+			.reveal figure img,
+			.reveal figure video {
+				margin: 0.25rem 0 0 0;
+			}
+			figcaption, a {
+				font-size: 16px;
+				text-align: center;
+			}
+			.fragment.enter-highlight-semi-fade-out {
+				visibility: hidden;
+			}
+			.fragment.enter-highlight-semi-fade-out.visible {
+				visibility: visible;
+				opacity: 0.5;
+			}
+			.fragment.enter-highlight-semi-fade-out.current-fragment {
+				color: var(--highlight-color);
+				opacity: 1 !important;
+			}
+			.good::before {
+				content: "✅";
+			}
+			.bad::before {
+				content: "❌";
+			}
+			.mid::before {
+				content: "🟡";
+			}
+			.highlight-color {
+				visibility: visible;
+				opacity: 1;
+			}
+			.highlight-color.visible {
+				color: var(--highlight-color);
+			}
+			
+		</style>
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<div class="slides">
+			
+				<section>
+                    <h1>Reinforcement Learning <span class="fragment highlight-color custom">for Robotics</span></h1>
+                    
+                    <p>Lunch and Learn - 2025/July/28</p>
+                    
+                    <p>🦆 <em>Alejandro Suárez Hernández</em></p>
+                </section>
+				
+				<section>
+					<h2>Story time</h2>
+					
+					<div class="r-hstack">
+					
+						<figure class="fragment">
+							<img src="images/bruckner.webp" width="300">
+							<figcaption>Anton Bruckner (1824-1896)</figcaption>
+						</figure>
+						
+						<figure class="fragment">
+							<img src="images/wagner.jpg" width="300">
+							<figcaption>Richard Wagner (1813-1883)</figcaption>
+						</figure>
+						
+						<figure class="fragment">
+							<img src="images/kreisler.jpg" width="300">
+							<figcaption>Fritz Kreisler (1875-1962) with a dog (Mops?)</figcaption>
+						</figure>
+					
+					</div>
+				</section>
+
+				<section>
+					<h2>What's RL?</h2>
+
+					<em class="fragment" data-fragment-index="1">Study of AI algorithms that seek to <span class="fragment highlight-red" data-fragment-index="3">learn</span> the <span class="fragment highlight-green" data-fragment-index="4">optimal behavior</span> of a situated agent through the maximization of a reward signal.</em>
+
+					<p class="fragment" data-fragment-index="2">This definition hints at RL being part of...</p>
+					<ul>
+						<li class="fragment" style="color:red;" data-fragment-index="3">... machine learning</li>
+						<li class="fragment" style="color:var(--green-color);" data-fragment-index="4">... decision-making and optimal control</li>
+					</ul>
+
+				</section>
+
+				<section>
+
+					<h2>RL in the machine learning scene</h2>
+
+					<table class="fragment" data-fragment-index="0">
+						<thead>
+							<tr>
+								<th></th>
+								<th><span class="fragment fade-in-then-semi-out" data-fragment-index="1">Supervised</span></th>
+								<th><span class="fragment fade-in-then-semi-out" data-fragment-index="2">Unsupervised</span></th>
+								<th><span class="fragment fade-in-then-semi-out" data-fragment-index="3">&#x2728;Reinforcement learning&#x2728;</span></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<th>Purpose</th>
+								<td><span class="fragment fade-in-then-semi-out" data-fragment-index="1">Prediction</span></td>
+								<td><span class="fragment fade-in-then-semi-out" data-fragment-index="2">Pattern discovery</span></td>
+								<td><span class="fragment fade-in-then-semi-out" data-fragment-index="3">Optimal behavior</span></td>
+							</tr>
+							<tr>
+								<th>Labeled data?</th>
+								<td><span class="fragment fade-in-then-semi-out" data-fragment-index="1">Yes</span></td>
+								<td><span class="fragment fade-in-then-semi-out" data-fragment-index="2">No</span></td>
+								<td><span class="fragment fade-in-then-semi-out" data-fragment-index="3">Self-labeled</span></td>
+							</tr>
+							<tr>
+								<th>Performance evaluation</th>
+								<td><span class="fragment fade-in-then-semi-out" data-fragment-index="1">Test set score</span></td>
+								<td><span class="fragment fade-in-then-semi-out" data-fragment-index="2">Not straightforward,<br>application-dependent</span></td>
+								<td><span class="fragment fade-in-then-semi-out" data-fragment-index="3">Reward curves</span></td>
+							</tr>
+							<tr>
+								<th>Real-time requirement</th>
+								<td><span class="fragment fade-in-then-semi-out" data-fragment-index="1">Not necessarily</span></td>
+								<td><span class="fragment fade-in-then-semi-out" data-fragment-index="2">Not necessarily</span></td>
+								<td><span class="fragment fade-in-then-semi-out" data-fragment-index="3">Yes</span></td>
+							</tr>
+							<tr>
+								<th>Example applications</th>
+								<td><span class="fragment fade-in-then-semi-out" data-fragment-index="1">Kinect skeleton detection<br>Viola-Jones face detection<br>Image segmentation</span></td>
+								<td><span class="fragment fade-in-then-semi-out" data-fragment-index="2">Anomaly detection<br>Clustering<br>Autoencoders</span></td>
+								<td><span class="fragment fade-in-then-semi-out" data-fragment-index="3">Outstanding game AI<br>Quadruped gait learning<br>In-hand manipulation</span></td>
+							</tr>
+						</tbody>
+					</table>
+
+				</section>
+				
+				<section>
+				
+					<h2>RL in the decision-making scene</h2>
+				
+					<table class="fragment" data-fragment-index="0">
+						<thead>
+							<tr>
+								<th></th>
+								<th><span class="fragment fade-in-then-semi-out" data-fragment-index="1">Handcrafted program</span></th>
+								<th><span class="fragment fade-in-then-semi-out" data-fragment-index="2">Automatic planning</span></th>
+								<th><span class="fragment fade-in-then-semi-out" data-fragment-index="3">&#x2728;Reinforcement learning&#x2728;</span></th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<th>Robustness</th>
+								<td><span class="good fragment fade-in-then-semi-out" data-fragment-index="1">Very robust and reliable</span></td>
+								<td><span class="good fragment fade-in-then-semi-out" data-fragment-index="2">Very robust and reliable</span></td>
+								<td><span class="bad fragment fade-in-then-semi-out" data-fragment-index="3">Might be unreliable</span></td>
+							</tr>
+							<tr>
+								<th>Human effort</th>
+								<td><span class="bad fragment fade-in-then-semi-out" data-fragment-index="1">High</span></td>
+								<td><span class="mid fragment fade-in-then-semi-out" data-fragment-index="2">Initially high, low after</span></td>
+								<td><span class="good fragment fade-in-then-semi-out" data-fragment-index="3">Low</span></td>
+							</tr>
+							<tr>
+								<th>Explainability</th>
+								<td><span class="good fragment fade-in-then-semi-out" data-fragment-index="1">Explainable</span></td>
+								<td><span class="good fragment fade-in-then-semi-out" data-fragment-index="2">Explainable</span></td>
+								<td><span class="bad fragment fade-in-then-semi-out" data-fragment-index="3">Poor</span></td>
+							</tr>
+							<tr>
+								<th>Adaptability</th>
+								<td><span class="bad fragment fade-in-then-semi-out" data-fragment-index="1">Highly specific solution</span></td>
+								<td><span class="mid fragment fade-in-then-semi-out" data-fragment-index="2">Extrapolable to related tasks</span></td>
+								<td><span class="good fragment fade-in-then-semi-out" data-fragment-index="3">Highly adaptable</span></td>
+							</tr>
+							<tr>
+								<th>Training time</th>
+								<td><span class="good fragment fade-in-then-semi-out" data-fragment-index="1">None</span></td>
+								<td><span class="good fragment fade-in-then-semi-out" data-fragment-index="2">None</span></td>
+								<td><span class="bad fragment fade-in-then-semi-out" data-fragment-index="3">High</span></td>
+							</tr>
+							<tr>
+								<th>Runtime computation</th>
+								<td><span class="mid fragment fade-in-then-semi-out" data-fragment-index="1">Depends on programmer</span></td>
+								<td><span class="mid fragment fade-in-then-semi-out" data-fragment-index="2">Depends on domain</span></td>
+								<td><span class="good fragment fade-in-then-semi-out" data-fragment-index="3">Low</span></td>
+							</tr>
+							<tr>
+								<th>Solvable tasks</th>
+								<td><span class="mid fragment fade-in-then-semi-out" data-fragment-index="1">Any, limited by skill</span></td>
+								<td><span class="mid fragment fade-in-then-semi-out" data-fragment-index="2">Strong with symbolic reasoning</span></td>
+								<td><span class="good fragment fade-in-then-semi-out" data-fragment-index="3">Any, but very data-hungry</span></td>
+							</tr>
+						</tbody>
+					</table>
+				
+				</section>
+
+				<section>
+					<h2>More graphically...</h2>
+
+					<div class="r-hstack">
+						<figure>
+						<img src="images/thinking.gif" height="300">
+						<figcaption>Coding and planning</figcaption>
+						</figure>
+
+						<figure>
+						<img src="images/lazy.gif" height="300">
+						<figcaption>RL</figcaption>
+						</figure>
+					</div>
+
+				</section>
+
+				<section>
+					<h2>Timeline (pre 2000s)</h2>
+
+					<div class="r-stack">
+						<img class="fragment fade-out" data-fragment-index="0" src="images/timeline/timeline-pre2000s-1.png">
+						<img class="fragment current-visible" data-fragment-index="0" src="images/timeline/timeline-pre2000s-2.png">
+						<img class="fragment current-visible" src="images/timeline/timeline-pre2000s-3.png">
+						<img class="fragment current-visible" src="images/timeline/timeline-pre2000s-4.png">
+						<img class="fragment current-visible" src="images/timeline/timeline-pre2000s-5.png">
+						<img class="fragment current-visible" src="images/timeline/timeline-pre2000s-6.png">
+						<img class="fragment current-visible" src="images/timeline/timeline-pre2000s-7.png">
+						<img class="fragment" src="images/timeline/timeline-pre2000s-8.png">
+					</div>
+				</section>
+
+				<section>
+					<h2>Timeline (post 2000s)</h2>
+
+					<div class="r-stack">
+						<img class="fragment fade-out" data-fragment-index="0" src="images/timeline/timeline-post2000s-1.png">
+						<img class="fragment current-visible" data-fragment-index="0" src="images/timeline/timeline-post2000s-2.png">
+						<img class="fragment current-visible" src="images/timeline/timeline-post2000s-3.png">
+						<img class="fragment current-visible" src="images/timeline/timeline-post2000s-4.png">
+						<img class="fragment current-visible" src="images/timeline/timeline-post2000s-5.png">
+						<img class="fragment" src="images/timeline/timeline-post2000s-6.png">
+					</div>
+				</section>
+
+				<section>
+					<h2>Background: Markov Decision Processes (MDPs)</h2>
+
+					<div class="r-hstack">
+
+						<figure class="fragment" data-fragment-index="0">
+							<div class="r-stack" style="width:500px;">
+								<img class="fragment fade-out" width="100%" data-fragment-index="1" src="images/MDP_PGM_1.png">
+								<img class="fragment current-visible" width="100%" data-fragment-index="1" src="images/MDP_PGM_2.png">
+								<img class="fragment current-visible" width="100%"  src="images/MDP_PGM_3.png">
+								<img class="fragment" width="100%" src="images/MDP_PGM_4.png">
+							</div>
+							<figcaption>MDP's graphical model</figcaption>
+						</figure>
+
+						<div>
+
+							<p class="fragment enter-highlight-semi-fade-out">An MDP consists of $ \langle S, A, P, R, \gamma \rangle $, where:</p>
+
+							<ul>
+								<li class="fragment enter-highlight-semi-fade-out">$ S = \left\{ s_0, s_1, s_2, \dots \right\} $ is the state space.</li>
+								<ul>
+									<li class="fragment enter-highlight-semi-fade-out">May be discrete ($ \mathbb{Z} $) or continuous ($ \mathbb{R}^n $).</li>
+								</ul>
+								<li class="fragment enter-highlight-semi-fade-out">$ A = \left\{ a_0, a_1, a_2, \dots \right\} $ is the action space.</li>
+								<ul>
+									<li class="fragment enter-highlight-semi-fade-out">May be discrete or continuous.</li>
+								</ul>
+								
+								<li class="fragment enter-highlight-semi-fade-out">$ P : S \times A \times S \rightarrow \left[ 0, 1 \right] $ is the transition probability function.</li>
+								<ul>
+									<li class="fragment enter-highlight-semi-fade-out">$ P(s,a,s') $ is the probability of $ s \xrightarrow{a} s' $.</li>
+								</ul>
+
+								<li class="fragment enter-highlight-semi-fade-out">$ R : S \times A \rightarrow \mathbb{R} $ is the reward function.</li>
+								<ul>
+									<li class="fragment enter-highlight-semi-fade-out">$ R(s,a) $ is the reward for taking action $ a $ in state $ s $.</li>
+								</ul>
+
+								<li class="fragment enter-highlight-semi-fade-out">$ \gamma \in \left[ 0, 1 \right] $ is the discount factor.</li>
+								<ul>
+									<li class="fragment enter-highlight-semi-fade-out">$ \gamma \rightarrow 0 $ give less weight to future rewards.</li>
+									<li class="fragment enter-highlight-semi-fade-out">Usually close to 1 (e.g. $ \gamma = 0.995 $).</li>
+								</ul>
+							</ul>
+
+						</div>
+
+					</div>
+
+				</section>
+
+				<section>
+					<h2>Policies</h2>
+					<p>Define agent behavior.</p>
+					<ul>
+						<li class="fragment enter-highlight-semi-fade-out">May be deterministic: $ \pi : S \rightarrow A $ maps state to action...</li>
+						<li class="fragment enter-highlight-semi-fade-out">Or stochastic: $ \pi : S \times A \rightarrow \left[ 0, 1 \right]$ maps state and action to probability.</li>
+					</ul>
+					<!-- <ul>
+						<li>Policies define the agent's behavior</li>
+						<ul>
+							<li>Deterministic: $ \pi : S \rightarrow A $ maps state to action</li>
+							<li>Stochastic: $ \pi : S \times A \rightarrow \left[ 0, 1 \right]$ maps state and action to probability.</li>
+						</ul>
+						
+						<li>Accumulated reward</li>
+						<li>Terminal state</li>
+						<li>Episodic MDP</li>
+						<li>Continuous MDP</li>
+					</ul> -->
+				</section>
+
+				<section>
+					<h2>Accumulated reward</h2>
+					<p>If the agent obtains rewards $ r_0, r_1, r_2, \dots $</p>
+
+					<ul>
+						<li class="fragment enter-highlight-semi-fade-out">The accumulated reward is $$ G = r_0 + \gamma r_1 + \gamma^2 r_2 + \dots = \sum_{i=0}^\infty \gamma^i \cdot r_i $$</li>
+						<li class="fragment enter-highlight-semi-fade-out">If $ \gamma \lt 1 $, then $ |G| \lt \infty $ is guaranteed.</li>
+						<li class="fragment enter-highlight-semi-fade-out">Value function: $ v_\pi (s) = \mathbb{E}_\pi \{ G | s_0 = s \} $</li>
+						<li class="fragment enter-highlight-semi-fade-out">Action-value function: $ q_\pi (s, a) = \mathbb{E}_\pi \{ G | s_0 = s, a_0 = a \} $</li>
+						<li class="fragment enter-highlight-semi-fade-out">RL's goal: learn $ \pi $ that maximizes $ v_\pi(s) $.</li>
+						<li class="fragment enter-highlight-semi-fade-out">A deterministic optimal policy <strong>always</strong> exists.</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Episodic vs continuing tasks</h2>
+
+					<div class="r-hstack items-start">
+						<div class="fragment fade-in-then-semi-out" style="width:40%">
+							<h3>Episodic</h3>
+
+							<ul>
+								<li>Have terminal states</li>
+								<li>Terminal states mark end of episode</li>
+							</ul>
+							<figure style="margin-top:20px;">
+								<img height="200px;" src="images/montezuma_revenge.gif">
+								<figcaption>Example: videogame (Montezuma's revenge)</figcaption>
+							</figure>
+						</div>
+						<div class="fragment fade-in-then-semi-out" style="width: 40%;">
+							<h3>Continuing</h3>
+
+							<ul style="">
+								<li>Never-ending</li>
+								<li>Discount should be $ \gamma \lt 1 $</li>
+							</ul>
+							<figure style="margin-top:20px;">
+								<img height="200px;" src="images/acrobot.gif">
+								<figcaption>Example: balancing an inverted pendulum</figcaption>
+							</figure>
+						</div>
+					</div>
+				</section>
+
+
+
+				<section>
+					<h2>Example: identify the MDP elements of the Cart Pole problem</h2>
+
+					<div class="r-hstack">
+						<iframe width="50%" height="315" src="https://www.youtube.com/embed/XMn1FI9_f8k?mute=1&start=80" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+						<ul style="width:50%;">
+							<li>State space: <span class="fragment enter-highlight-semi-fade-out">$ s = \left[ x \quad v_x \quad \theta \quad w_\theta \right]^T \in \mathbb{R}^4 $</span></li>
+							<li>Action space: <span class="fragment enter-highlight-semi-fade-out">$ a = f_x \in \left[-1, 1\right] $</span></li>
+							<li>Reward: <span class="fragment enter-highlight-semi-fade-out">$ R(s,a) = \cos \theta $</span></li>
+							<li>Episodic or continuing? <span class="fragment enter-highlight-semi-fade-out">Continuing</span></li>
+							<li>Discount: <span class="fragment enter-highlight-semi-fade-out">some $ \gamma \lt 1 $ (e.g. $ \gamma = .99 $)</span></li>
+						</ul>
+					</div>
+				</section>
+
+				<section>
+					<h2>Example: identify the MDP elements of a videogame</h2>
+					<div class="r-hstack">
+						<img height="200px;" src="images/montezuma_revenge.gif">
+
+						<ul style="width:50%;">
+							<li>State space: <span class="fragment enter-highlight-semi-fade-out">
+								$$ s =  \begin{bmatrix}
+								        r_{11} & g_{11} & b_{11} & \dots  & r_{w1} & g_{w1} & b_{w1} \\
+										       & \vdots &        & \ddots &        & \vdots &        \\
+										r_{1h} & g_{1h} & b_{1h} & \dots  & r_{wh} & g_{wh} & b_{wh}
+								\end{bmatrix} \in \mathbb{R}^{h \times 3 \cdot w}$$
+							</span></li>
+							<li>Action space: <span class="fragment enter-highlight-semi-fade-out"><img style="vertical-align: middle;" src="images/atari_controller.png" height="150"> $ \in \{ 0, 1, 2, 3, 4, 5 \} $</span></li>
+							<li>Reward: <span class="fragment enter-highlight-semi-fade-out">$ R(s,a) = 1_{s\text{ is a victory state}} $</span></li>
+							<li>Episodic or continuing? <span class="fragment enter-highlight-semi-fade-out">Episodic (ends in victory or game over)</span></li>
+							<li>Discount: <span class="fragment enter-highlight-semi-fade-out">arbitrary, but probably $ \gamma = 1 $ works best</span></li>
+						</ul>
+					</div>
+				</section>
+
+				<section>
+					<h2>Optimal policy: the Bellman optimality equation</h2>
+
+					<ul>
+						<li class="fragment enter-highlight-semi-fade-out">We want $ \max_\pi v_\pi(s) $, let's denote it $ v_*(s) $</li>
+						<li class="fragment enter-highlight-semi-fade-out">Bellman optimality equation: $$ v_*(s) = \max_a \left[ R(s,a) + \gamma \sum_{s'} P(s,a,s') v_*(s') \right] $$</li>
+						<li class="fragment enter-highlight-semi-fade-out">Also for $q_*(s,a)$: $$ q_*(s,a) = R(s,a) + \gamma \sum_{s'} P(s,a,s') \max_{a'} q_*(s',a') $$ </li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Algorithms for calculating the optimal policy</h2>
+
+					<div class="r-hstack items-start">
+						<div>
+							<h3>Value iteration</h3>
+
+							<ul>
+								<li class="fragment enter-highlight-semi-fade-out">Initialize $ V_0(s) $ arbitrarily over all $ s \in S $</li>
+								<li class="fragment enter-highlight-semi-fade-out">Apply update rule $$ V_{i+1}(s) = \max_a \left[ R(s,a) + \gamma \sum_{s'} P(s,a,s') V_i(s') \right] $$</li>
+							</ul>
+							
+						</div>
+
+						<div>
+							<h3>Policy iteration</h3>
+
+							<ul>
+
+								<li class="fragment enter-highlight-semi-fade-out">Initialize deterministic $ \pi_0 (s) $ and $ V_0(s) $ arbitrarily over all $ s \in S $</li>
+								<li class="fragment enter-highlight-semi-fade-out">Apply update rules $$ V_{i+1}(s) = \left[ R(s,\pi_i(s)) + \gamma \sum_{s'} P(s,\pi_i(s),s') V_i(s') \right] $$</li>
+								<li class="fragment enter-highlight-semi-fade-out" style="list-style-type: none;">$$ \pi_{i+1}(s) = \argmax_a \left[ R(s,a) + \gamma \sum_{s'} P(s,a,s') V_i(s') \right] $$</p>
+							</ul>
+
+							
+
+						</div>
+
+						
+					</div>
+				</section>
+
+				<section>
+					<h2>Why not just use VI or PI?</h2>
+
+					<ul>
+						<li class="fragment enter-highlight-semi-fade-out">Sweeps over entire state space</li>
+						<li class="fragment enter-highlight-semi-fade-out">Assumes explicit knowledge of $ P(s,a,s') $</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Basic idea of RL</h2>
+
+					<div class="r-hstack items-start">
+						<figure style="width: 50%">
+							<div class="r-stack">
+								<img class="fragment fade-out" data-fragment-index="0" src="images/agent-environment-rl-1.png">
+								<img class="fragment current-visible" data-fragment-index="0" src="images/agent-environment-rl-2.png">
+								<img class="fragment current-visible" data-fragment-index="1" src="images/agent-environment-rl-3.png">
+								<img class="fragment current-visible" data-fragment-index="2" src="images/agent-environment-rl-4.png">
+								<img class="fragment current-visible" data-fragment-index="3" src="images/agent-environment-rl-5.png">
+								<img class="fragment" data-fragment-index="4" src="images/agent-environment-rl-6.png">
+							</div>
+							<figcaption>Learning cycle</figcaption>
+						</figure>
+
+						<ol style="width: 50%;">
+							<li class="fragment enter-highlight-semi-fade-out" data-fragment-index="0">Observe current state</li>
+							<li class="fragment enter-highlight-semi-fade-out" data-fragment-index="1">Sample $ a $ from <strong>behavioral policy</strong>.</li>
+							<li class="fragment enter-highlight-semi-fade-out" data-fragment-index="2">Execute $ a $, observe new <strong>state and reward</strong>.</li>
+							<li class="fragment enter-highlight-semi-fade-out" data-fragment-index="3">Update <strong>target policy</strong></li>
+							<li class="fragment enter-highlight-semi-fade-out" data-fragment-index="4">Repeat from 2</li>
+						</ol>
+					</div>
+				</section>
+
+				<section>
+					<h2>The exploration vs exploitation dilemma</h2>
+					<div class="r-hstack items-start">
+						<figure style="width: 50%;">
+							<img src="images/deep-racer-min.png">
+							<figcaption>Source: Berkeley CS188</figcaption>
+						</figure>
+
+						<div style="width: 50%;">
+							<p>Should we...</p>
+							<ul>
+								<li class="fragment enter-highlight-semi-fade-out">... pick a good action? </li>
+								<li class="fragment enter-highlight-semi-fade-out">Or try to discover a better one?</li>
+							</ul>
+						</div>
+					</div>
+				</section>
+
+				<section>
+					<h2>Some additional concepts...</h2>
+
+					<ul>
+						<li class="fragment enter-highlight-semi-fade-out">
+							On-Policy learning vs Off-Policy learning
+							<ul>
+								<li><strong>On-policy</strong>: target-policy $ = $ behavior policy</li>
+								<li><strong>Off-policy</strong>: target-policy $ \neq $ behavior policy</li>
+							</ul>
+						</li>
+						<li class="fragment enter-highlight-semi-fade-out">
+							Monte-Carlo (MC) vs Temporal Difference (TD):
+							<ul>
+								<li><strong>MC</strong>: update target policy at the end of each episode.</li>
+								<li><strong>TD</strong>: update target policy after each transition.</li>
+							</ul>
+						</li>
+					</ul>
+
+				</section>
+
+				<section>
+					<h2>Tabular methods</h2>
+
+					<div class="r-hstack items-start">
+						<ul style="width: 50%;">
+							<li class="fragment enter-highlight-semi-fade-out">Huge $ S \times A $ that stores $ q(s,a) $.</li>
+							<li class="fragment enter-highlight-semi-fade-out">Unfeasible for large state/action spaces...</li>
+							<li class="fragment enter-highlight-semi-fade-out">... but are exact.</li>
+							<li class="fragment enter-highlight-semi-fade-out">... and good for starters.</li>
+						</ul>
+						
+						<div class="fragment enter-highlight-semi-fade-out" style="width: 50%">
+							Example for just 4 states and 2 actions
+							<table>
+								<tr>
+									<td></td>
+									<td>$a=0$</td>
+									<td>$a=1$</td>
+								</tr>
+								<tr>
+									<td>$s = 0$</td>
+									<td>$ q(0, 0) $</td>
+									<td>$ q(0, 1) $</td>
+								</tr>
+								<tr>
+									<td>$s = 1$</td>
+									<td>$ q(1, 0) $</td>
+									<td>$ q(1, 1) $</td>
+								</tr>
+								<tr>
+									<td>$s = 2$</td>
+									<td>$ q(2, 0) $</td>
+									<td>$ q(2, 1) $</td>
+								</tr>
+								<tr>
+									<td>$s = 3$</td>
+									<td>$ q(3, 0) $</td>
+									<td>$ q(3, 1) $</td>
+								</tr>
+							</table>
+						</div>
+					</div>
+				</section>
+
+				<section>
+					<h2>SARSA</h2>
+
+					<div class="r-hstack" >
+						<ul style="width:50%;">
+							<li class="fragment enter-highlight-semi-fade-out">Stands for State-Action-Reward-State-Action</li>
+							<li class="fragment enter-highlight-semi-fade-out">On-policy</li>
+							<li class="fragment enter-highlight-semi-fade-out">TD learning</li>
+							<li class="fragment enter-highlight-semi-fade-out">
+								Exploration is built into target policy
+								<ul>
+									<li>Typically uses $ \epsilon $-greedy exploration</li>
+								</ul>
+							</li>
+						</ul>
+
+						<pre style="width:50%;">
+<code data-line-numbers="|1|2-4|6-8|10-11|13-14" class="language-1C">Initialize Q(s, a) arbitrarily for all states s and actions a
+For each episode:
+    Initialize state s
+    Choose action a from s from Q using ε-greedy
+
+    Repeat until s is terminal:
+        Take action a, observe reward r and next state s'
+        Choose next action a' from s' using policy derived from Q (e.g., ε-greedy)
+        
+        Update Q-value:
+            Q(s, a) ← Q(s, a) + α * [r + γ * Q(s', a') - Q(s, a)]
+        
+        s ← s'
+        a ← a'
+</code>
+
+						</pre>
+					</div>
+					
+				</section>
+
+				<section>
+					<h2>Q-Learning</h2>
+
+					<div class="r-hstack" >
+						<ul style="width:50%;">
+							<li class="fragment enter-highlight-semi-fade-out">Off-policy</li>
+							<li class="fragment enter-highlight-semi-fade-out">TD learning</li>
+							<li class="fragment enter-highlight-semi-fade-out">
+								Exploration is built into behavior policy
+								<ul>
+									<li>Typically uses $ \epsilon $-greedy exploration</li>
+								</ul>
+							</li>
+							<li class="fragment enter-highlight-semi-fade-out">Widely used</li>
+						</ul>
+
+						<pre style="width:50%;">
+<code data-line-numbers="|1|2-3|5-8|10-11|13" class="language-1C">Initialize Q(s, a) arbitrarily for all states s and actions a
+Loop for each episode:
+    Initialize state s
+
+    Repeat until s is terminal:
+        Choose action a from s using ε-greedy policy derived from Q
+        Take action a
+        Observe reward r and next state s'
+
+        Update Q(s, a):
+            Q(s, a) ← Q(s, a) + α * [r + γ * max_a' Q(s', a') - Q(s, a)]
+
+        s ← s'
+</code>
+
+						</pre>
+					</div>
+				</section>
+
+				<section>
+					<h2>Function approximation</h2>
+
+					<ul>
+						<li class="fragment enter-highlight-semi-fade-out">Don't represent $ q(s,a) $ explicitly in memory...</li>
+						<li class="fragment enter-highlight-semi-fade-out">... instead use a function approximator $ q_\theta (s,a) $
+							<ul>
+								<li>Maybe a linear regressor: $ q_\theta(s,a) = \theta_1 x_1 + \dots + \theta_n x_n $ </li>
+								<li>... or a neural network.</li>
+							</ul>
+						</li>
+						
+						<li class="fragment enter-highlight-semi-fade-out">Offers advantage of generalization!</li>
+						<li class="fragment enter-highlight-semi-fade-out">But exact solutions might not be longer possible.</li>
+						<li class="fragment enter-highlight-semi-fade-out">And we might have unstability or converge problems.</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Deep Q Network</h2>
+
+					<div class="r-hstack items-start">
+						<figure class="fragment">
+							<img height="400" src="images/atari-envs.gif">
+							<figcaption>Atari environments (Hugging Face)</figcaption>
+						</figure>
+						<figure class="fragment">
+							<img height="400" src="images/dqn.png">
+							<figcaption>Deep Q Network (Human-level control through deep reinforcement learning, Mnih et al., Nature 2015)</figcaption>
+						</figure>
+					</div>
+				</section>
+
+				<section>
+					<h2>Policy gradient: REINFORCE</h2>
+
+					<div class="r-hstack">
+						<ul style="width: 50%;">
+							<li class="fragment enter-highlight-semi-fade-out">On-Policy learning</li>
+							<li class="fragment enter-highlight-semi-fade-out">Monte-Carlo learning</li>
+							<li class="fragment enter-highlight-semi-fade-out">Parametric policy: $ \pi(a|s;\theta) $</li>
+							<li class="fragment enter-highlight-semi-fade-out">Update policy directly: $$ \theta \leftarrow \theta + \alpha \nabla_\theta \mathbb{E}_{\pi_\theta} \{ G \} $$</li>
+						</ul>
+
+						<pre style="width:50%;">
+<code data-line-numbers="|1|2-5|11-12" class="language-1C">Initialize θ arbitrarily
+Repeat forever:
+    Generate an episode:
+        s₀, a₀, r₁, s₁, a₁, r₂, ..., s_T
+        by following π(a | s; θ)
+
+    For each step t in episode:
+        Compute return:
+            G_t ← ∑ₖ=t+1^T γ^(k−t−1) * r_k
+
+        Update parameters:
+            θ ← θ + α * ∇θ log π(a_t | s_t; θ) * G_t
+</code>
+					</div>
+				</section>
+
+				<section>
+					<h2>The challenges in robotics</h2>
+
+					<ul>
+						<li class="fragment enter-highlight-semi-fade-out">Cannot afford trial-and-error with real robot</li>
+						<li class="fragment enter-highlight-semi-fade-out">Sparse rewards</li>
+						<li class="fragment enter-highlight-semi-fade-out">Continuous actions</li>
+						<li class="fragment enter-highlight-semi-fade-out">Difficulty designing good rewards</li>
+						<li class="fragment enter-highlight-semi-fade-out">Many environments are not fully observable</li>
+						<li class="fragment enter-highlight-semi-fade-out">Ethics and safety</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Continuous actions</h2>
+
+					<div class="r-hstack">
+						<figure class="fragment">
+							<img height="400" src="images/dqn.png">
+							<figcaption>Deep Q Network (Human-level control through deep reinforcement learning, Mnih et al., Nature 2015)</figcaption>
+						</figure>
+
+						<div>
+							<ul>
+								<li class="fragment enter-highlight-semi-fade-out">DQN is meant for discrete actions.</li>
+								<li class="fragment enter-highlight-semi-fade-out">In robotics we often need continuous actions.</li>
+								<li class="fragment enter-highlight-semi-fade-out">One way to work around: discretization</li>
+								<li class="fragment enter-highlight-semi-fade-out">But there are much more powerful alternatives...</li>
+							</ul>
+						</div>
+					</div>
+				</section>
+
+				<section>
+					<h2>Solution: Deep Deterministic Policy Gradient</h2>
+
+					<div class="r-hstack">
+
+						<figure style="width:50%;">
+							<img src="images/ddpg.png">
+							<figcaption>Interleaved updates</figcaption>
+						</figure>
+
+						<ul style="width:50%;">
+							<li class="fragment enter-highlight-semi-fade-out">Actor-Critic algorithm for continuous action spaces...</li>
+							<li class="fragment enter-highlight-semi-fade-out">Two networks: the critic $ Q(s,a;\theta) \rightarrow \mathbb{R} $...</li>
+							<li class="fragment enter-highlight-semi-fade-out">... and the actor: $ \mu(s;\phi) \rightarrow A $</li>
+							<li class="fragment enter-highlight-semi-fade-out">Off-policy</li>
+							<li class="fragment enter-highlight-semi-fade-out">Exploration: noise in the action output by $ \mu $</li>
+						</ul>
+
+					</div>
+				</section>
+
+				<section>
+					<h2>Sparse rewards</h2>
+
+					<div class="r-stack">
+
+						<div class="r-hstack fragment fade-out items-start" data-fragment-index="0">
+							<iframe width="560" height="315" src="https://www.youtube.com/embed/Dvd1jQe3pq0?mute=1&start=32" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+							<div style="width:50%;">
+								<h3>Scenario 1</h3>
+								<ul>
+									<li>The agent has to arrive as far as possible</li>
+									<li>Straightforward reward: how much the agent has advanced</li>
+									<li>Good, informative reward!</li>
+								</ul>
+							</div>
+						</div>
+
+						<div class="r-hstack fragment items-start" data-fragment-index="0">
+							<iframe width="560" height="315" src="https://www.youtube.com/embed/nIvC0AlCHZM?si=NyhW8KOhqDU8OEPY&amp;start=13&mute=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+							<div style="width:50%;">
+								<h3>Scenario 2</h3>
+								<ul>
+									<li>The agent has to score a point</li>
+									<li>Easiest reward design: give a score of 1 when a point is scored, 0 otherwise.</li>
+									<li><strong>This reward is sparse</strong></li>
+								</ul>
+							</div>
+						</div>
+						
+
+					</div>
+				</section>
+
+				<section>
+					
+					<section>
+						<h2>Solution: Hindsight Experience Replay (HER)</h2>
+
+						<div class="r-stack">
+							<figure class="fragment fade-out" data-fragment-index="0">
+								<img height="300" src="images/her-example.png">
+								<figcaption>Task failure, not much is learn...</figcaption>
+							</figure>
+
+							<figure class="fragment" data-fragment-index="0">
+								<img height="300" src="images/her-example-2.png">
+								<figcaption>... or is it?</figcaption>
+							</figure>
+						</div>
+					</section>
+
+					<section>
+
+						<div class="r-hstack">
+							<iframe width="560" height="315" src="https://www.youtube.com/embed/Dvd1jQe3pq0?start=167&mute=1" title="YouTube video player" frameborder="0" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+							<figure style="width:50%;">
+								<img src="images/her-results.png">
+								<figcaption>Hindsight Experience Replay results, OpenAI</figcaption>
+							</figure>
+						</div>
+
+					</section>
+
+					
+				</section>
+
+				<section>
+					<h2>Difficulty designing good rewards</h2>
+
+					<iframe width="560" height="315" src="https://www.youtube.com/embed/FByY3tSx2Ak?si=c8W_Kyb8qCJLRqnT&amp;start=10&mute=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+				</section>
+
+				<section>
+					<h2>Solution: Deep Learning From Human Preferences</h2>
+
+					<iframe width="560" height="315" src="https://www.youtube.com/embed/WT0WtoYz2jE?si=1YN2Wv8TpD0TwSGz&amp;start=67&mute=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+				</section>
+
+				<!-- <section>
+					<h2>Demo depicting DDPG + HER</h2>
+				</section> -->
+
+				<section>
+					<h2>References</h2>
+
+					<div class="r-hstack items-start">
+
+						<div style="width: 40%;">
+							<h3>🗎 Papers and books</h3>
+							<ul>
+								<li><a href="https://press.princeton.edu/books/paperback/9780691146683/dynamic-programming">Dynamic Programming</a></li>
+								<li><a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=5392560">Some Studies in Machine Learning
+Using the Game of Checkers</a></li>
+								<li><a href="https://link.springer.com/article/10.1007/BF00115009">Learning to predict by the methods of temporal differences</a></li>
+								<li><a href="https://cml.rhul.ac.uk/qlearning.html#:~:text=Q-learning%20was%20first%20invented%20in%20Prof.%20Watkins%27%20Ph.D,transition%20probabilities%20or%20expected%20rewards%20of%20the%20MDP.">Q Learning</a></li>
+								<li><a href="https://dl.acm.org/doi/pdf/10.1145/203330.203343">TD-Gammon</a></li>
+
+								<li><a href="https://dl.acm.org/doi/10.5555/3009657.3009806">Policy gradient methods for reinforcement learning with function approximation</a></li>
+								<li><a href="https://proceedings.neurips.cc/paper_files/paper/1999/file/6449f44a102fde848669bdd9eb6b76fa-Paper.pdf">Actor-Critic Algorithms</a></li>
+								<li><a href="https://dl.acm.org/doi/10.1145/122344.122377">Dyna, an integrated architecture for learning, planning, and reacting</a></li>
+								<li><a href="https://pdf.sciencedirectassets.com/271585/1-s2.0-S0004370200X00549/1-s2.0-S0004370299000521/main.pdf?X-Amz-Security-Token=IQoJb3JpZ2luX2VjEDgaCXVzLWVhc3QtMSJHMEUCIGLeOOAomFW9drS4C6KlZZ%2BXMOnQuXM1fV9Tgr3ECUCnAiEAsZVRMgZ2ZsodTWW1h3vmviRwQTB%2Bz54uhfqHxK9nbZEqswUIYRAFGgwwNTkwMDM1NDY4NjUiDCflANoYkx5vjifykiqQBXuwiyvI1cBwcQarXncJiUcbd8TMfW10IIBK%2BCrZEZvOowaG%2Bc5HVukCvW21nBCJGIzrgWTh%2FHG2P7X0G0ZLLF63B9xYlSywIfpZZheX9HjH3COdJz91vUPDrAIMT90U00smD%2B9PL3hGKDRCBpZAsBKgIhRHPLHvmJqhLftAFuj2wMMr3%2FiDaAGLvcszJ08gCALH547sq6%2FJG7WJ%2FfJTE8W8BLyMnes%2BXjyMz0cdIg2PacFh7cPuJp5FLecqyn%2Bc6TP8RbGQcdEtJt3KUZLI6Av8JStqIn%2BCKIQnPjWYCHkTukJIDUuBb8l8tG%2FKaVOTBzHfzgbO%2FOztDiwFlvBhlymrboqgjwJJgXOZA9E0goxtj3yTMnDAOArNx1lfZgScvvHAnrISa48cxhmAI6WfRZZRpKSugCvuyihC64ZO8v6kUVOlhKiYXEXX6%2FzSd%2Fakn%2FqTk9brWRMT1PwfsZ%2F4djFX7KiOc1IRUkXJlCBMKW%2FXAfZMTT1zZYlzpPlmYWpXcINhUJO0QmWDq1FlwUMX1670m8%2BVbUqKsufyxKwHSjcwr8sdxl0P3WL0Mw9Fv2iYJWc1JYs7TFcpVUm%2F0EbYiL0qNFhMiFp5M19LENwuSaMk9%2Bhwegju0WcV74H2ZnCAzGmEYyRsyoTmH4dx8q23LIwLuRxoH%2Bc8TgmDnsTtZ1BL66CY6bVE2pK0DPJiQe9xwPRcWlOWsm6PgmgxhRGT7M44QLUmpLNi%2BlbgHmwkplyOzpMUoQwoalYExJBTZNSMun3aq1Zgezp7WZsebZglIMfoH7lP%2BJ2JwvWTa1u7ln%2Bm4lGQdKJYf2JV9lfXbnEEErtuPhEv75Ua9vGRlczTLfV67M7aXR7djL9NP3IAi%2BynMOfvk8QGOrEBAGMIxX5RhAZ1KB4sLEbGezhOdKnhbDyUCgOd19Xks0s5stkDDPyUxKmFjdIVBGxQpkZ%2BgIPFGY7AUgc4ovOsgWPAMsDTzORuO%2Bb8MQBQVnbVQD0%2FQU45SrCWzB89UE6wf%2BEm%2BxAN067mdSq77VwFK7yuGrkOvXYuDCgI05%2FN%2FfIUQ2qKuqHhp%2F02%2Be9SKWBfvxMGpYqES1zOaKDIy9m66DUR%2BJYwSVbtpCcQyN%2F9QP6W&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20250726T171256Z&X-Amz-SignedHeaders=host&X-Amz-Expires=299&X-Amz-Credential=ASIAQ3PHCVTYS3BNQS3S%2F20250726%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Signature=d37b416c1f71503782fcce1e1e3214654be1ebfac7eb901899a843c3e7e2f344&hash=4ceeab8ebd4c9ce23491c24fa26ca71df97dd56be5c0da249a1e67fae8b3d389&host=68042c943591013ac2b2430a89b270f6af2c76d8dfd086a07176afe7c76c2c61&pii=S0004370299000521&tid=spdf-11051bb7-5bbf-4787-a5c4-14a4ffeefaa8&sid=45696c138c0c9848628bd52-b3edef7d459egxrqb&type=client&tsoh=d3d3LnNjaWVuY2VkaXJlY3QuY29t&rh=d3d3LnNjaWVuY2VkaXJlY3QuY29t&ua=00135d5650555b555454&rr=965586573d37e21e&cc=fr">Between MDPs and semi-MDPs: A framework for temporal abstraction in reinforcement learning</a></li>
+								<li><a href="https://www.cs.toronto.edu/~vmnih/docs/dqn.pdf">Playing Atari with Deep Reinforcement Learning</a></li>
+
+								<li><a href="https://arxiv.org/abs/1707.01495">Hindsight Experience Replay</a></li>
+								<li><a href="https://arxiv.org/pdf/1706.03741">Deep Reinforcement Learning from Human Preferences</a></li>
+								<li><a href="http://www.incompleteideas.net/book/the-book.html">Reinforcement Learning: An Introduction</a></li>
+								<li><a href="https://spinningup.openai.com/en/latest/spinningup/keypapers.html">More...</a></li>
+							</ul>
+						</div>
+
+						<div style="width: 30%;">
+							<h3>📹Videos</h3>
+							<ul>
+								<li><a href="https://www.youtube.com/watch?v=WT0WtoYz2jE">Two Minute Papers: Deep Learning from Human Preferences</a></li>
+								<li><a href="https://www.youtube.com/watch?v=fzuYEStsQxc">Two Minute Papers: This Curious AI Beats Many Games</a></li>
+								<li><a href="https://www.youtube.com/watch?v=Dvd1jQe3pq0&t=86s">Two Minute Papers: Hindsight Experience Replay</a></li>
+								<li><a href="https://www.youtube.com/watch?v=4l7Is6vOAOA&list=PLzH6n4zXuckquVnQ0KlMDxyT5YE-sA8Ps&index=6">Computerphile, feat. Rob. Miles: General AI won't want you to fix its code</a></li>
+							</ul>
+						</div>
+
+						<div style="width: 30%;">
+							<h3>🎓 Courses</h3>
+							<ul>
+								<li><a href="https://www.coursera.org/specializations/reinforcement-learning?">Coursera: RL specialization by Adam and Martha White</a></li>
+								<li><a href="https://huggingface.co/learn/deep-rl-course/unit0/introduction">Hugging Face Deep RL course</a></li>
+								<li><a href="https://spinningup.openai.com/en/latest/user/introduction.html">OpenAI's Spinning Up</a></li>
+							</ul>
+						</div>
+					</div>
+				</section>
+
+				<section>
+					<h1>Questions?</h1>
+				</section>
+
+			</div>
+
+		</div>
+
+		<script src="./reveal.js/dist/reveal.js"></script>
+        <script src="./reveal.js/plugin/notes/notes.js"></script>
+		<script src="./reveal.js/plugin/markdown/markdown.js"></script>
+		<script src="./reveal.js/plugin/highlight/highlight.js"></script>
+		<script src="./reveal.js/plugin/zoom/zoom.js"></script>
+		<script src="reveal.js/plugin/math/math.js"></script>
+
+        <script>
+            Reveal.initialize({
+                previewLinks: false,
+				hash: true,
+                width: 1280,
+                height: 720,
+                slideNumber: "c/t",
+                plugins: [ RevealZoom, RevealMarkdown, RevealHighlight, RevealNotes, RevealMath.KaTeX ],
+				autoPlayMedia: true,
+            });
+        </script>
+
+	</body>
+</html>
