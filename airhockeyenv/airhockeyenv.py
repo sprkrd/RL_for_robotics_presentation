@@ -10,8 +10,6 @@ import pygame
 import numpy as np
 import gymnasium as gym
 
-from pprint import pprint
-
 
 BG_COLOR = (0,0,0)
 
@@ -21,7 +19,7 @@ class AirHockey2D(gym.Env):
     metadata = {
         "render_modes": ["human", "interactive", "rgb_array"],
         "render_fps": 60,
-        "window_size": (800, 640),
+        "window_size": (640, 480),
         "scale_factor": 150
     }
     
@@ -31,6 +29,7 @@ class AirHockey2D(gym.Env):
     MALLET_RADIUS = .04815
     
     MAX_THETA = np.pi
+    SAFETY_MARGIN = 0.05
     MAX_ANGULAR_SPEED = 5*np.pi
     MAX_TORQUE = 10
     MAX_COORD = LINK1_LENGTH + LINK2_LENGTH
@@ -39,7 +38,7 @@ class AirHockey2D(gym.Env):
     SIMULATION_HZ = 1000
     SIMULATION_TIMESTEP = 1/SIMULATION_HZ
     
-    def __init__(self, epsilon=1e-2, render_mode=None):
+    def __init__(self, epsilon=1e-1, render_mode=None):
         assert render_mode is None or render_mode in self.metadata["render_modes"]
         
         self.render_mode = render_mode
@@ -104,8 +103,8 @@ class AirHockey2D(gym.Env):
             bodyA=self._origin,
             bodyB=self._link1,
             anchor=self._origin.worldCenter,
-            lowerAngle=-self.MAX_THETA,
-            upperAngle=self.MAX_THETA,
+            lowerAngle=-(self.MAX_THETA-self.SAFETY_MARGIN),
+            upperAngle=self.MAX_THETA-self.SAFETY_MARGIN,
             enableLimit=True,
             maxMotorTorque=self.MAX_TORQUE,
             enableMotor=True
@@ -114,8 +113,8 @@ class AirHockey2D(gym.Env):
             bodyA=self._link1,
             bodyB=self._link2,
             anchor=(self.LINK1_LENGTH, 0),
-            lowerAngle=-self.MAX_THETA,
-            upperAngle=self.MAX_THETA,
+            lowerAngle=-(self.MAX_THETA-self.SAFETY_MARGIN),
+            upperAngle=self.MAX_THETA-self.SAFETY_MARGIN,
             enableLimit=True,
             maxMotorTorque=self.MAX_TORQUE,
             enableMotor=True
@@ -129,12 +128,12 @@ class AirHockey2D(gym.Env):
     def distance_to_target(self):
         return np.linalg.norm(self.x - self._target[:2])
         
-    def distance_to_target_speed(self):
+    def difference_with_target_speed(self):
         return np.linalg.norm(self.xd - self._target[2:4])
     
     @property
     def done(self):
-        return self.distance_to_target() < self._epsilon and self.distance_to_target_speed() < self._epsilon
+        return self.distance_to_target() < self._epsilon and self.difference_with_target_speed() < self._epsilon
     
     @property
     def q(self):
@@ -170,7 +169,7 @@ class AirHockey2D(gym.Env):
     def _get_info(self):
         return {
             "distance_to_target": self.distance_to_target(),
-            "distance_to_target_speed": self.distance_to_target_speed()
+            "difference_with_target_speed": self.difference_with_target_speed()
         }
     
     def _jacobian(self, q=None, qd=None):
@@ -185,9 +184,6 @@ class AirHockey2D(gym.Env):
         x = self.LINK1_LENGTH*np.cos(q[0]) + self.LINK2_LENGTH*np.cos(np.sum(q))
         y = self.LINK1_LENGTH*np.sin(q[0]) + self.LINK2_LENGTH*np.sin(np.sum(q))
         return np.array((x,y))
-        
-    def _ik(self, pos):
-        pass
         
     def _sample_angles(self):
         return self.np_random.uniform(-self.MAX_THETA, self.MAX_THETA, 2)
@@ -263,6 +259,9 @@ class AirHockey2D(gym.Env):
                     self._draw_polygon(canvas, "gray", obj.transform, fixture.shape.vertices)
                 elif isinstance(fixture.shape, b2CircleShape):
                     self._draw_circle(canvas, "gray", obj.GetWorldPoint(fixture.shape.pos), fixture.shape.radius)
+        target = self._target[:2]
+        target_color = "green" if self.done else "blue"
+        self._draw_circle(canvas, target_color, target, 0.05)
         for joint in joints:
             self._draw_circle(canvas, "red", joint.anchorA, 0.05)
         if self.render_mode == "rgb_array":
@@ -322,9 +321,6 @@ class AirHockey2D(gym.Env):
         self._world.Step(self.SIMULATION_TIMESTEP, 10, 10)
             
         obs = self._get_obs()
-        
-        
-        
         info = self._get_info()
         
         self._prev_qd = obs["joints"][2:4]
@@ -340,7 +336,7 @@ class AirHockey2D(gym.Env):
         
 if __name__ == "__main__":
     from gymnasium.wrappers import RecordVideo
-    with gym.make("airhockeyenv/MoveToTarget-v0", render_mode="rgb_array") as env:
+    with gym.make("airhockeyenv/MoveToTarget-v0", render_mode="rgb_array", max_episode_steps=2000) as env:
         env = RecordVideo(env, video_folder="videos", episode_trigger=lambda _: True, fps=1000)
         
         
