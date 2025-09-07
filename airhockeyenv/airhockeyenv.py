@@ -239,16 +239,21 @@ class AirHockey2D(gym.Env):
         
     def render(self):
         if self.render_mode == "rgb_array":
-            return self._render_frame()
-    
-    def _render_frame(self):
+            canvas = self._draw_canvas()
+            return np.transpose(np.array(pygame.surfarray.pixels3d(canvas)), axes=(1,0,2))
+        
+    def _render_continuous(self):
         window_size = self.metadata["window_size"]
-        self._time_point_last_frame = time()
-        if self.render_mode in ("human", "interactive"):
-            if self._window is None:
-                pygame.init()
-                self._window = pygame.display.set_mode(window_size)
-            self._handle_events()
+        if self._window is None:
+            pygame.init()
+            self._window = pygame.display.set_mode(window_size)
+        self._handle_events()
+        canvas = self._draw_canvas()
+        self._window.blit(canvas, canvas.get_rect())
+        pygame.display.update()
+
+    def _draw_canvas(self):
+        window_size = self.metadata["window_size"]
         canvas = pygame.Surface(window_size)
         canvas.fill(BG_COLOR)
         objects = (self._link1, self._link2)
@@ -264,11 +269,7 @@ class AirHockey2D(gym.Env):
         self._draw_circle(canvas, target_color, target, 0.05)
         for joint in joints:
             self._draw_circle(canvas, "red", joint.anchorA, 0.05)
-        if self.render_mode == "rgb_array":
-            return np.transpose(np.array(pygame.surfarray.pixels3d(canvas)), axes=(1,0,2))
-        else:
-            self._window.blit(canvas, canvas.get_rect())
-            pygame.display.update()
+        return canvas
         
     def close(self):
         if self._window is not None:
@@ -300,8 +301,8 @@ class AirHockey2D(gym.Env):
         for _ in range(self.SIMULATION_HZ):
             self._world.Step(self.SIMULATION_TIMESTEP, 10, 10)
         
-        if self.render_mode in ("human", "interactive"):
-            self._render_frame()
+        if self.render_mode in ("human", "interactive") and self._frame_pending():
+            self._render_continuous()
             
         obs = self._get_obs()
         info = self._get_info()
@@ -330,15 +331,14 @@ class AirHockey2D(gym.Env):
         reward = -1 if done else 0
         
         if self.render_mode in ("human", "interactive") and self._frame_pending():
-            self._render_frame()
+            self._render_continuous()
         
         return (obs, reward, done, self._user_exit, info)
         
 if __name__ == "__main__":
     from gymnasium.wrappers import RecordVideo
-    with gym.make("airhockeyenv/MoveToTarget-v0", render_mode="rgb_array", max_episode_steps=2000) as env:
-        env = RecordVideo(env, video_folder="videos", episode_trigger=lambda _: True, fps=1000)
-        
+    with gym.make("airhockeyenv/MoveToTarget-v0", render_mode="interactive") as env:
+        # env = RecordVideo(env, video_folder="videos", episode_trigger=lambda _: True, fps=1000)
         
         truncated = False
         env.reset()
@@ -346,6 +346,6 @@ if __name__ == "__main__":
         while not truncated:
             obs, reward, terminated, truncated, info = env.step(env.action_space.sample())
             
-        env.close()
+        # env.close()
         
         
