@@ -364,8 +364,8 @@
 								<li><b>A terminal state will eventually be reached</b></li>
 							</ul>
 							<figure style="margin-top:20px;">
-								<img height="200px;" src="images/montezuma_revenge.gif">
-								<figcaption>Example: videogame (Montezuma's revenge)</figcaption>
+								<img height="200px;" src="images/robotcup.webp">
+								<figcaption>Example: football game</figcaption>
 							</figure>
 						</div>
 						<div class="fragment fade-in-then-semi-out" style="width:32%">
@@ -377,8 +377,8 @@
 								<li><b>The task can continue indefinitely or until terminal state</b></li>
 							</ul>
 							<figure style="margin-top:20px;">
-								<img height="200px;" src="images/robotcup.webp">
-								<figcaption>Example: football game</figcaption>
+								<img height="200px;" src="images/montezuma_revenge.gif">
+								<figcaption>Example: videogame (Montezuma's revenge)</figcaption>
 							</figure>
 						</div>
 						<div class="fragment fade-in-then-semi-out" style="width: 32%;">
@@ -408,7 +408,7 @@
 							<li>State space: <span class="fragment enter-highlight-semi-fade-out">$ s = \left[ x \quad v_x \quad \theta \quad w_\theta \right]^T \in \mathbb{R}^4 $</span></li>
 							<li>Action space: <span class="fragment enter-highlight-semi-fade-out">$ a = f_x \in \left[-1, 1\right] $</span></li>
 							<li>Reward: <span class="fragment enter-highlight-semi-fade-out">$ R(s,a) = \cos \theta $</span></li>
-							<li>Episodic or continuing? <span class="fragment enter-highlight-semi-fade-out">Continuing</span></li>
+							<li>Episodic, indefinite or continuing? <span class="fragment enter-highlight-semi-fade-out">Continuing</span></li>
 							<li>Discount: <span class="fragment enter-highlight-semi-fade-out">some $ \gamma \lt 1 $ (e.g. $ \gamma = .99 $)</span></li>
 						</ul>
 					</div>
@@ -429,8 +429,8 @@
 							</span></li>
 							<li>Action space: <span class="fragment enter-highlight-semi-fade-out"><img style="vertical-align: middle;" src="images/atari_controller.png" height="150"> $ \in \{ 0, 1, 2, 3, 4, 5 \} $</span></li>
 							<li>Reward: <span class="fragment enter-highlight-semi-fade-out">$ R(s,a) = 1_{s\text{ is a victory state}} $</span></li>
-							<li>Episodic or continuing? <span class="fragment enter-highlight-semi-fade-out">Episodic (ends in victory or game over)</span></li>
-							<li>Discount: <span class="fragment enter-highlight-semi-fade-out">arbitrary, but probably $ \gamma = 1 $ works best</span></li>
+							<li>Episodic, indefinite or continuing? <span class="fragment enter-highlight-semi-fade-out">Indefinite (there are victory and defeat conditions)</span></li>
+							<li>Discount: <span class="fragment enter-highlight-semi-fade-out">arbitrary, $ \gamma = 1 $ works, $ \gamma < 1 $ works to win as fast as possible </span></li>
 						</ul>
 					</div>
 				</section>
